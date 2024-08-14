@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import {
-  Bell,
-  Home,
-  LineChart,
-  Package,
-  Package2,
-  ShoppingCart,
-  Users,
-} from "lucide-vue-next";
+import { Bell, Package2 } from "lucide-vue-next";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import GenerateIcon from "./GenerateIcon.vue";
+const sidebar = useSidebar();
 </script>
 
 <template>
@@ -27,46 +21,23 @@ import { Button } from "@/components/ui/button";
         </Button>
       </div>
       <div class="flex-1">
-        <nav class="grid items-start px-2 text-sm font-medium lg:px-4">
+        <nav class="grid items-start px-2 text-sm font-medium lg:px-4 gap-1">
           <a
-            href="/"
-            class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            v-for="i in sidebar.pages.value"
+            :href="i.link"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-white hover:bg-primary/70"
+            :class="
+              sidebar.current.value === i.link ? 'bg-primary text-white ' : ''
+            "
           >
-            <Home class="h-4 w-4" />
-            Dashboard
-          </a>
-          <a
-            href="#"
-            class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-          >
-            <ShoppingCart class="h-4 w-4" />
-            Orders
+            <GenerateIcon :title="i.title" />
+            {{ i.title }}
             <Badge
+              v-if="i.notif"
               class="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
             >
-              6
+              {{ i.notif }}
             </Badge>
-          </a>
-          <a
-            href="#"
-            class="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
-          >
-            <Package class="h-4 w-4" />
-            Products
-          </a>
-          <a
-            href="#"
-            class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-          >
-            <Users class="h-4 w-4" />
-            Customers
-          </a>
-          <a
-            href="#"
-            class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-          >
-            <LineChart class="h-4 w-4" />
-            Analytics
           </a>
         </nav>
       </div>

@@ -14,9 +14,8 @@ const value = ref<DateValue>();
 </script>
 
 <template>
-  
   <div
-    class="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm"
+    class="flex flex-1 items-center justify-center rounded-lg border-[0.25px] shadow-sm"
   >
     <div class="flex flex-col items-center gap-1 text-center">
       <p>{{ value }}</p>

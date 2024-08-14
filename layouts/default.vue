@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Sidebar from "~/components/Sidebar.vue";
 import SidebarSheet from "~/components/SidebarSheet.vue";
+import TitlePage from "~/components/TitlePage.vue";
+
+const sidebar = useSidebar();
 
 const today = () => {
   const today = new Date();
@@ -36,7 +39,9 @@ const value = ref<DateValue>();
         class="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6"
       >
         <SidebarSheet />
-        <div class="w-full flex-1"></div>
+        <div class="w-full flex-1">
+          <TitlePage :title="sidebar.title.value ?? ''" />
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button variant="secondary" size="icon" class="rounded-full">
