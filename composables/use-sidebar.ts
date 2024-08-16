@@ -5,28 +5,32 @@ export const useSidebar = () => {
 
   const pages = computed(() => [
     {
+      title: "Dashboard",
+      link: "/",
+    },
+    {
       title: "Orders",
       link: "/order",
     },
     {
       title: "Cabangs",
-      link: "/cabangs",
+      link: "/cabang",
     },
     {
       title: "Treatments",
-      link: "/treatments",
+      link: "/treatment",
     },
     {
       title: "Therapists",
-      link: "/therapists",
+      link: "/therapist",
     },
     {
       title: "Analytics",
-      link: "/analytics",
+      link: "/analytic",
     },
     {
       title: "Customers",
-      link: "/customers",
+      link: "/customer",
     },
   ]);
 
