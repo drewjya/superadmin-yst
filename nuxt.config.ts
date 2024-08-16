@@ -14,4 +14,9 @@ export default defineNuxtConfig({
      */
     componentDir: "./components",
   },
+  imports: {
+    autoImport: true,
+
+    
+  }
 });
