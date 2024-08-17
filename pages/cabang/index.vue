@@ -1,8 +1,4 @@
 <script setup lang="ts">
-
-
-
-
 import type { VCabang } from "~/lib/types";
 import { getLastItem } from "~/lib/utils";
 
@@ -37,7 +33,11 @@ const setCursor = (val: "prev" | "next") => {
 // const slide = useSlideover();
 
 const addCabang = () => {
-  useRouter().push("/cabang/add");
+  // useRouter().push("/cabang/add");
+
+  $fetch("/api/cabang/add", {
+    method: "POST",
+  });
 };
 </script>
 
@@ -46,7 +46,7 @@ const addCabang = () => {
     class="flex flex-col gap-2 w-[calc(100svw-2rem)] md:w-[calc(100svw-4rem)]"
   >
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Cabang</h1>
+      <AppBreadCrumb />
 
       <Button variant="outline" size="sm" @click="addCabang"
         >Add New Cabang</Button
@@ -65,7 +65,7 @@ const addCabang = () => {
       <div class="font-medium">No Data</div>
     </div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-3">
-      <Card v-for="i in data?.cabang">
+      <Card v-for="i in data?.cabang" class="flex flex-col justify-between">
         <CardHeader>
           <div class="flex justify-center bg-slate-100 rounded-t">
             <NuxtImg

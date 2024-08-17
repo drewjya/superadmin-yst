@@ -2,6 +2,10 @@
 import { ArrowUpDown } from "lucide-vue-next";
 import type { KeyFunction, VTableColumn } from "~/lib/types";
 
+const search = defineModel<string>("search");
+
+const emit = defineEmits(["reset", "prev", "next"]);
+
 withDefaults(
   defineProps<{
     data?: T[];
@@ -9,18 +13,23 @@ withDefaults(
     column: VTableColumn<T>[];
     loading?: boolean;
     placeholder?: string;
+    prev?: boolean;
+    next?: boolean;
   }>(),
   {
     data: () => [],
     loading: false,
     placeholder: "No data available",
+    prev: false,
+    next: false,
   }
 );
 </script>
 
 <template>
   <div class="flex gap-5">
-    <Input placeholder="Search" class="border-[0.5px]" />
+    <Input placeholder="Search" class="border-[0.5px]" v-model="search" />
+    <Button @click="emit('reset')">Reset</Button>
   </div>
   <ScrollArea class="w-full whitespace-nowrap rounded-md border">
     <Table>
@@ -60,7 +69,7 @@ withDefaults(
       <TableBody v-else>
         <TableRow :key="getKey(curr)" v-for="curr in data">
           <TableCell v-for="e in column" class="font-medium px-4">{{
-            e.display(curr)
+            e.display ? e.display(curr) : (curr as any)[e.key]
           }}</TableCell>
           <slot :data="curr"></slot>
         </TableRow>
@@ -68,10 +77,12 @@ withDefaults(
     </Table>
 
     <ScrollBar orientation="horizontal" />
+    <ScrollBar orientation="vertical" />
   </ScrollArea>
   <div class="flex justify-end gap-2">
     <Button
-      :disabled="loading"
+      :disabled="loading || !prev"
+      @click="emit('prev')"
       size="sm"
       variant="secondary"
       class="hover:bg-primary/80 hover:text-primary-foreground"
@@ -80,7 +91,8 @@ withDefaults(
     </Button>
     <Button
       size="sm"
-      :disabled="loading"
+      @click="emit('next')"
+      :disabled="loading || !next"
       variant="secondary"
       class="hover:bg-primary/80 hover:text-primary-foreground"
     >

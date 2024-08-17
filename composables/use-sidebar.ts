@@ -9,27 +9,27 @@ export const useSidebar = () => {
       link: "/",
     },
     {
-      title: "Orders",
+      title: "Order",
       link: "/order",
     },
     {
-      title: "Cabangs",
+      title: "Cabang",
       link: "/cabang",
     },
     {
-      title: "Treatments",
+      title: "Treatment",
       link: "/treatment",
     },
     {
-      title: "Therapists",
+      title: "Therapist",
       link: "/therapist",
     },
     {
-      title: "Analytics",
+      title: "Analytic",
       link: "/analytic",
     },
     {
-      title: "Customers",
+      title: "Customer",
       link: "/customer",
     },
   ]);
