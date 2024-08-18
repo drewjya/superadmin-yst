@@ -50,7 +50,10 @@ watch(search, () => {
   >
     <div class="flex items-center justify-between">
       <AppBreadCrumb />
-
+const monthly = {
+    now: result[thisMonth]?.totalPrice ?? 0,
+    prev: result[prevMonth]?.totalPrice ?? 0,
+  };
       <Button variant="outline" size="sm">Add New Treatment</Button>
     </div>
 

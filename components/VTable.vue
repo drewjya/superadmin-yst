@@ -1,5 +1,9 @@
 <script setup lang="ts" generic="T">
-import { ArrowUpDown } from "lucide-vue-next";
+import {
+  ArrowUpDown,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-vue-next";
 import type { KeyFunction, VTableColumn } from "~/lib/types";
 
 const search = defineModel<string>("search");
@@ -79,6 +83,7 @@ withDefaults(
     <ScrollBar orientation="horizontal" />
     <ScrollBar orientation="vertical" />
   </ScrollArea>
+
   <div class="flex justify-end gap-2">
     <Button
       :disabled="loading || !prev"
@@ -87,7 +92,7 @@ withDefaults(
       variant="secondary"
       class="hover:bg-primary/80 hover:text-primary-foreground"
     >
-      Prev
+      <ChevronLeftIcon class="w-4 h-4" />
     </Button>
     <Button
       size="sm"
@@ -96,7 +101,7 @@ withDefaults(
       variant="secondary"
       class="hover:bg-primary/80 hover:text-primary-foreground"
     >
-      Next
+      <ChevronRightIcon class="w-4 h-4" />
     </Button>
   </div>
 </template>
