@@ -1,4 +1,3 @@
-import { OrderStatus } from "@prisma/client";
 import prisma from "~/lib/prisma";
 import {
   formatStringDate,
@@ -8,7 +7,7 @@ import {
 } from "~/lib/utils";
 
 export default defineEventHandler(async (event) => {
-  const { date, order }: { date: string; order: OrderStatus } = getQuery(event);
+  const { date }: { date: string } = getQuery(event);
 
   let currDate: Date;
   if (!date) {
@@ -27,12 +26,24 @@ export default defineEventHandler(async (event) => {
   prev.end.setMonth(val.start.getMonth() - 1);
 
   const cr = stringDateThisAndNExt(date);
+  console.log(`
+    select 
+      EXTRACT(MONTH from "orderTime") as month,
+      sum("totalPrice") as "totalPrice"
+    FROM "Order"
+    WHERE "orderTime" BETWEEN ${cr.start}::timestamp AND ${cr.end}::timestamp
+    and "orderStatus" = 'COMPLETE'::"OrderStatus"
+    GROUP BY month
+    ORDER BY month asc;
+  `);
+
   const res = await prisma.$queryRaw<{ month: number; totalPrice: BigInt }[]>`
     select 
       EXTRACT(MONTH from "orderTime") as month,
       sum("totalPrice") as "totalPrice"
     FROM "Order"
     WHERE "orderTime" BETWEEN ${cr.start}::timestamp AND ${cr.end}::timestamp
+    and "orderStatus" = 'COMPLETE'::"OrderStatus"
     GROUP BY month
     ORDER BY month asc;
   `;
@@ -81,6 +92,7 @@ export default defineEventHandler(async (event) => {
       SUM("totalPrice") AS "totalPrice"
     FROM "Order"
     WHERE "orderTime" BETWEEN ${weekD.startPrev}::timestamp AND ${weekD.endWeek}::timestamp
+    and "orderStatus" = 'COMPLETE'::"OrderStatus"
     GROUP BY week
     ORDER BY week ASC;
   `;

@@ -2,12 +2,7 @@
 import { OrderStatus } from "@prisma/client";
 import { Copy, MoreVertical } from "lucide-vue-next";
 import type { State, VOrderDetail } from "~/lib/types";
-import {
-  formatDateString,
-  generateColor,
-  numberFormat,
-  titleCase,
-} from "~/lib/utils";
+import { currencyFormat, formatDateString, titleCase } from "~/lib/utils";
 
 const { state } = defineProps<{
   state: State<VOrderDetail>;
@@ -51,14 +46,8 @@ const { state } = defineProps<{
         <div class="font-semibold">Order Status</div>
         <Skeleton class="w-20 h-4" v-if="state.loading"></Skeleton>
         <div v-else-if="state.data" class="flex justify-between">
-          <Badge
-            :class="
-              generateColor(state.data.orderStatus) +
-              ` hover:${generateColor(state.data.orderStatus)}`
-            "
-            class="text-black"
-            >{{ titleCase(state.data.orderStatus) }}</Badge
-          >
+          <VBadgeStatus :status="state.data.orderStatus" />
+
           <div
             class="ml-auto flex items-center gap-1"
             v-if="
@@ -102,7 +91,7 @@ const { state } = defineProps<{
             v-for="i in state.data.orderDetails"
           >
             <span class="text-muted-foreground">{{ i.nama }}</span>
-            <span>{{ numberFormat(i.price) }}</span>
+            <span>{{ currencyFormat(i.price) }}</span>
           </li>
         </ul>
         <Separator class="my-2" />
@@ -111,7 +100,7 @@ const { state } = defineProps<{
             <span class="text-muted-foreground">Total</span>
             <Skeleton v-if="state.loading" class="w-24 h-4"></Skeleton>
             <span v-else-if="state.data">{{
-              numberFormat(state.data.totalPrice)
+              currencyFormat(state.data.totalPrice)
             }}</span>
           </li>
         </ul>

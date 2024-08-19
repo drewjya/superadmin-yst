@@ -13,6 +13,7 @@ const emit = defineEmits(["reset", "prev", "next"]);
 withDefaults(
   defineProps<{
     data?: T[];
+    
     getKey: KeyFunction<T>;
     column: VTableColumn<T>[];
     loading?: boolean;

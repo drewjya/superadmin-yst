@@ -1,17 +1,29 @@
 <script setup lang="ts">
+import type { Gender } from "@prisma/client";
 import { DotsHorizontalIcon } from "@radix-icons/vue";
-import type { VTableColumn, VTherapist } from "~/lib/types";
+import type { VCabang, VTableColumn, VTherapist } from "~/lib/types";
+import { genderList, titleCase } from "~/lib/utils";
 type Cur = number | undefined;
 const cursors = ref<Cur[]>([undefined]);
 const skip = ref("");
-const search = ref("");
+const searchName = ref("");
+const gender = ref<Gender | undefined>();
+const searchNo = ref("");
+const searchCabang = ref<VCabang | undefined>();
 type TherapistReq = {
   therapist: VTherapist[];
   nextCursor: number | null;
 };
 const { data, status } = await useLazyFetch<TherapistReq>(
-  () => `/api/therapist?query=${search.value}&${skip.value ?? ""}`
+  () =>
+    `/api/therapist?query=${searchName.value}&gender=${gender.value ?? ""}&no=${
+      searchNo.value
+    }&cabang=${searchCabang.value?.id ?? ""}&${skip.value ?? ""}`
 );
+
+const { data: cabang, status: cabangStatus } = await useLazyFetch<{
+  cabang: VCabang[];
+}>("/api/cabang");
 
 const columns: VTableColumn<VTherapist>[] = [
   {
@@ -38,21 +50,36 @@ const columns: VTableColumn<VTherapist>[] = [
     key: "cabang",
     label: "Cabang",
   },
-  // {
-  //   class: "w-20",
-  //   display: (data) => data.attendance?.checkIn?.toString() ?? "-",
-  //   key: "check-in",
-  //   label: "Check In",
-  // },
-  // {
-  //   class: "w-20",
-  //   display: (data) => data.attendance?.checkOut?.toString() ?? "-",
-  //   key: "check-out",
-  //   label: "Check Out",
-  // },
 ];
 
-watch(search, () => {
+watch(searchName, () => {
+  if (!skip) {
+    return;
+  }
+
+  skip.value = "";
+  cursors.value = [undefined];
+});
+
+watch(searchNo, () => {
+  if (!skip) {
+    return;
+  }
+
+  skip.value = "";
+  cursors.value = [undefined];
+});
+
+watch(searchCabang, () => {
+  if (!skip) {
+    return;
+  }
+
+  skip.value = "";
+  cursors.value = [undefined];
+});
+
+watch(gender, () => {
   if (!skip) {
     return;
   }
@@ -72,11 +99,33 @@ watch(search, () => {
       <Button variant="outline" size="sm">Add New Therapist</Button>
     </div>
 
+    <div class="flex gap-3 items-center">
+      <Input v-model="searchNo" placeholder="Search No" />
+      <VDropdown
+        :items="cabang?.cabang"
+        :loading="cabangStatus === 'pending'"
+        :display="(v) => v.nama"
+        :show-label="false"
+        label="Cabang"
+        v-model="searchCabang"
+      />
+      <VDropdown
+        :show-label="false"
+        :items="genderList()"
+        v-model="gender"
+        label="Gender"
+        :display="(v) => titleCase(v)"
+      ></VDropdown>
+    </div>
     <VTable
+      placeholder="Search Name"
       @reset="
         () => {
-          search = '';
+          searchName = '';
           skip = '';
+          gender = undefined;
+          searchNo = '';
+          searchCabang = undefined;
           cursors = [undefined];
         }
       "
@@ -110,7 +159,7 @@ watch(search, () => {
       :column="columns"
       :data="data?.therapist ?? undefined"
       :get-key="(data) => data.nama"
-      v-model:search="search"
+      v-model:search="searchName"
     >
       <template #head>
         <TableHead> Check In </TableHead>

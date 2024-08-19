@@ -4,7 +4,7 @@ import { twMerge } from "tailwind-merge";
 
 import weekOfYear from "dayjs/plugin/weekOfYear.js";
 
-import { OrderStatus } from "@prisma/client";
+import { Gender, OrderStatus } from "@prisma/client";
 import dayjs from "dayjs";
 
 export function formatDateString(format: string, dateString?: string) {
@@ -15,9 +15,13 @@ export function orderStatusList() {
   return Array.from(Object.values(OrderStatus));
 }
 
+export function genderList() {
+  return Array.from(Object.values(Gender));
+}
+
 export function todayString() {
-  // return dayjs().format("YYYY-MM-DD");
-  return "2024-07-30";
+  return dayjs().format("YYYY-MM-DD");
+  // return "2024-07-30";
 }
 
 export function getWeek(val: string) {
@@ -71,10 +75,17 @@ export function generateColor(status: OrderStatus) {
     : "bg-orange-200";
 }
 
-export function numberFormat(val: number) {
+export function currencyFormat(val: number) {
   const formatter = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
+  });
+  return formatter.format(val);
+}
+
+export function numberFormat(val: number) {
+  const formatter = new Intl.NumberFormat("id-ID", {
+    maximumFractionDigits: 2,
   });
   return formatter.format(val);
 }

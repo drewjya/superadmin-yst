@@ -14,12 +14,13 @@ import {
 } from "@internationalized/date";
 import type { DateRange } from "radix-vue";
 
-import type { OrderStatus } from "@prisma/client";
+import type { Gender, OrderStatus } from "@prisma/client";
 import type { VOrder } from "~/lib/types";
 import {
   cn,
+  currencyFormat,
   formatDateString,
-  generateColor,
+  genderList,
   numberFormat,
   orderStatusList,
   titleCase,
@@ -46,17 +47,18 @@ type OrderReq = {
 const date = ref({
   start: new CalendarDate(
     initDate.getFullYear(),
-    initDate.getMonth(),
+    initDate.getMonth() + 1,
     initDate.getDate()
   ),
   end: new CalendarDate(
     initDate.getFullYear(),
-    initDate.getMonth() + 1,
+    initDate.getMonth() + 2,
     initDate.getDate()
   ),
 }) as Ref<DateRange>;
 
 const orderStatus = ref<OrderStatus | "">("");
+const gender = ref<Gender | undefined>();
 const listStatus = orderStatusList();
 const { status, data } = await useLazyFetch<OrderReq>(
   () =>
@@ -64,7 +66,7 @@ const { status, data } = await useLazyFetch<OrderReq>(
       date.value.end ?? ""
     }&status=${orderStatus.value}&therapist=${therapist.value}&name=${
       user.value
-    }&email=${email.value}&${skip.value}`
+    }&email=${email.value}&gender=${gender.value ?? ""}&${skip.value}`
 );
 type Profit = {
   now: number;
@@ -73,7 +75,30 @@ type Profit = {
 const { data: income } = await useLazyFetch<{
   monthly: Profit;
   weekly: Profit;
-}>(`/api/order/income?date=${todayString()}`);
+}>(() => `/api/order/income?date=${todayString()}&status=${orderStatus.value}`);
+
+const percentageVal = (profit: Profit, val: "week" | "month") => {
+  if (profit.prev === 0) {
+    if (profit.now === 0) {
+      return `same from last ${val}`;
+    }
+    return `+${numberFormat(profit.now / 100)}% from last ${val}`;
+  }
+  if (profit.now !== profit.prev) {
+    const comparator = ((profit.now - profit.prev) / profit.prev) * 100;
+    console.log(comparator, val);
+
+    if (comparator === 0) {
+      return `same from last ${val}`;
+    }
+    return `${
+      comparator > 0
+        ? `+${numberFormat(comparator)}`
+        : `${numberFormat(comparator)}`
+    }% from last ${val}`;
+  }
+  return `same from the last ${val}`;
+};
 </script>
 
 <template>
@@ -92,14 +117,14 @@ const { data: income } = await useLazyFetch<{
             <CardHeader class="pb-2">
               <CardDescription>This Week</CardDescription>
               <CardTitle class="text-4xl" v-if="income">
-                {{ numberFormat(income.weekly.now) }}
+                {{ currencyFormat(income.weekly.now) }}
               </CardTitle>
             </CardHeader>
-            <!-- <CardContent>
+            <CardContent v-if="income">
               <div class="text-xs text-muted-foreground">
-                +25% from last week
+                {{ percentageVal(income.weekly, "week") }}
               </div>
-            </CardContent> -->
+            </CardContent>
             <!-- <CardFooter>
               <Progress :model-value="25" aria-label="25% increase" />
             </CardFooter> -->
@@ -109,13 +134,18 @@ const { data: income } = await useLazyFetch<{
             <CardHeader class="pb-2">
               <CardDescription>This Month</CardDescription>
               <CardTitle class="text-4xl" v-if="income">
-                {{ numberFormat(income.monthly.now) }}
+                {{ currencyFormat(income.monthly.now) }}
               </CardTitle>
             </CardHeader>
+            <CardContent v-if="income">
+              <div class="text-xs text-muted-foreground">
+                {{ percentageVal(income.monthly, "month") }}
+              </div>
+            </CardContent>
           </Card>
         </div>
         <div class="flex flex-col gap-4">
-          <div class="flex items-center">
+          <div class="flex items-end">
             <Popover>
               <PopoverTrigger as-child>
                 <Button
@@ -150,7 +180,15 @@ const { data: income } = await useLazyFetch<{
                 />
               </PopoverContent>
             </Popover>
-            <div class="ml-auto flex items-center gap-2">
+            <div class="ml-auto flex items-end gap-2">
+              <VDropdown
+                :show-label="false"
+                :items="genderList()"
+                v-model="gender"
+                label="Gender"
+                :display="(v) => titleCase(v)"
+              ></VDropdown>
+
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <Button
@@ -211,6 +249,7 @@ const { data: income } = await useLazyFetch<{
                         initDate.getDate()
                       ),
                     };
+                    gender = undefined;
                     therapist = '';
                   }
                 "
@@ -287,13 +326,7 @@ const { data: income } = await useLazyFetch<{
                       {{ i.cabang.nama }}
                     </TableCell>
                     <TableCell class="hidden sm:table-cell">
-                      <Badge
-                        class="text-xs"
-                        :class="generateColor(i.orderStatus)"
-                        variant="secondary"
-                      >
-                        {{ titleCase(i.orderStatus) }}
-                      </Badge>
+                      <VBadgeStatus class="text-xs" :status="i.orderStatus" />
                     </TableCell>
                     <TableCell>
                       <div class="flex justify-center">
@@ -308,7 +341,7 @@ const { data: income } = await useLazyFetch<{
                     </TableCell>
 
                     <TableCell class="text-right">
-                      {{ numberFormat(i.totalPrice) }}
+                      {{ currencyFormat(i.totalPrice) }}
                     </TableCell>
                   </TableRow>
                 </TableBody>

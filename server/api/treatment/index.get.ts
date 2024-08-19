@@ -2,16 +2,34 @@ import prisma from "~/lib/prisma";
 import { VTreatment } from "~/lib/types";
 
 export default defineEventHandler(async (event) => {
-  const { query, cursor }: { cursor: number; query: string } = getQuery(event);
+  const {
+    query,
+    cursor,
+    category,
+    tag,
+  }: { cursor: number; query: string; category: number; tag: number } =
+    getQuery(event);
   let items: VTreatment[];
   const limit = 10;
-  if (query && query.length !== 0) {
+  if (query || category || tag) {
     items = await prisma.treatment.findMany({
       take: limit,
+      ...(parseInt(`${cursor}`)
+        ? {
+            skip: 1, // Do not include the cursor itself in the query result.
+            cursor: {
+              id: +cursor,
+            },
+          }
+        : {}),
       where: {
-        nama: {
-          startsWith: query,
-        },
+        nama: query
+          ? {
+              startsWith: query,
+            }
+          : undefined,
+        tagsId: tag ? +tag : undefined,
+        categoryId: category ? +category : undefined,
       },
       select: {
         id: true,
@@ -19,12 +37,14 @@ export default defineEventHandler(async (event) => {
         category: {
           select: {
             nama: true,
+            id: true,
           },
         },
         durasi: true,
         tags: {
           select: {
             name: true,
+            id: true,
           },
         },
       },
@@ -37,23 +57,28 @@ export default defineEventHandler(async (event) => {
 
   items = await prisma.treatment.findMany({
     take: limit,
-    cursor: cursor
+    ...(parseInt(`${cursor}`)
       ? {
-          id: +cursor,
+          skip: 1, // Do not include the cursor itself in the query result.
+          cursor: {
+            id: +cursor,
+          },
         }
-      : undefined,
+      : {}),
     select: {
       id: true,
       nama: true,
       category: {
         select: {
           nama: true,
+          id: true,
         },
       },
       durasi: true,
       tags: {
         select: {
           name: true,
+          id: true,
         },
       },
     },

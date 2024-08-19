@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DotsHorizontalIcon } from "@radix-icons/vue";
-import type { VTableColumn, VTreatment } from "~/lib/types";
+import type { VCategory, VTableColumn, VTags, VTreatment } from "~/lib/types";
 type Cur = number | undefined;
 const cursors = ref<Cur[]>([undefined]);
 const skip = ref("");
@@ -9,9 +9,25 @@ type TreatmentReq = {
   treatment: VTreatment[];
   nextCursor: number | null;
 };
+const selectedTags = ref<VTags | undefined>();
+
+const selectedCategory = ref<VCategory | undefined>();
 const { data, status } = await useLazyFetch<TreatmentReq>(
-  () => `/api/treatment?query=${search.value}&${skip.value ?? ""}`
+  () =>
+    `/api/treatment?query=${search.value}&category=${
+      selectedCategory.value?.id ?? ""
+    }&tag=${selectedTags.value?.id ?? ""}&${skip.value ?? ""}`
 );
+
+
+
+const { data: category, status: categoryStatus } = await useLazyFetch<{
+  category: VCategory[];
+}>("/api/category");
+
+const { data: tags, status: tagStatus } = await useLazyFetch<{
+  tags: VTags[];
+}>("/api/tags");
 
 const columns: VTableColumn<VTreatment>[] = [
   {
@@ -50,19 +66,33 @@ watch(search, () => {
   >
     <div class="flex items-center justify-between">
       <AppBreadCrumb />
-const monthly = {
-    now: result[thisMonth]?.totalPrice ?? 0,
-    prev: result[prevMonth]?.totalPrice ?? 0,
-  };
+
       <Button variant="outline" size="sm">Add New Treatment</Button>
     </div>
-
+    <div class="flex gap-2">
+      <VDropdown
+        :items="category?.category"
+        :loading="categoryStatus === 'pending'"
+        :display="(v) => v.nama"
+        label="Category"
+        v-model="selectedCategory"
+      />
+      <VDropdown
+        :items="tags?.tags"
+        :loading="tagStatus === 'pending'"
+        :display="(v) => v.name"
+        label="Tags"
+        v-model="selectedTags"
+      />
+    </div>
     <VTable
       @reset="
         () => {
           search = '';
           skip = '';
           cursors = [undefined];
+          selectedCategory = undefined;
+          selectedTags = undefined;
         }
       "
       @prev="

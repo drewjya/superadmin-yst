@@ -1,3 +1,4 @@
+import { Gender } from "@prisma/client";
 import prisma from "~/lib/prisma";
 import { VTherapist } from "~/lib/types";
 
@@ -29,17 +30,52 @@ const getUtcDateToday = () => {
   };
 };
 export default defineEventHandler(async (event) => {
-  const { query, cursor }: { cursor: number; query: string } = getQuery(event);
+  const {
+    query,
+    cursor,
+    gender,
+    no,
+    cabang,
+  }: {
+    cursor: number;
+    query: string;
+    gender: string;
+    no: string;
+    cabang: number;
+  } = getQuery(event);
   let items: VTherapist[];
   const limit = 10;
   const date = getUtcDateToday();
-  if (query && query.length !== 0) {
+  if (query || gender || no || cabang) {
     const data = await prisma.therapist.findMany({
       take: limit,
+      ...(parseInt(`${cursor}`)
+        ? {
+            skip: 1, // Do not include the cursor itself in the query result.
+            cursor: {
+              id: +cursor,
+            },
+          }
+        : {}),
       where: {
-        no: {
-          startsWith: query,
-        },
+        no: no
+          ? {
+              startsWith: no,
+              mode: "insensitive",
+            }
+          : undefined,
+        cabang: cabang
+          ? {
+              id: +cabang,
+            }
+          : undefined,
+        gender: gender ? (gender as Gender) : undefined,
+        nama: query
+          ? {
+              startsWith: query,
+              mode: "insensitive",
+            }
+          : undefined,
       },
       select: {
         id: true,
@@ -68,25 +104,35 @@ export default defineEventHandler(async (event) => {
         },
       },
     });
+    let nextCursor: number | undefined;
     items = data.map((e) => {
       return {
         ...e,
         attendance: e.attendance.length > 0 ? e.attendance[0] : undefined,
       };
     });
+    if (items.length < limit) {
+      nextCursor = undefined;
+    } else {
+      nextCursor = items[items.length - 1].id;
+    }
+
     return {
       therapist: items,
-      nextCursor: null,
+      nextCursor: nextCursor,
     };
   }
 
   const data = await prisma.therapist.findMany({
     take: limit,
-    cursor: cursor
+    ...(parseInt(`${cursor}`)
       ? {
-          id: +cursor,
+          skip: 1, // Do not include the cursor itself in the query result.
+          cursor: {
+            id: +cursor,
+          },
         }
-      : undefined,
+      : {}),
 
     select: {
       id: true,

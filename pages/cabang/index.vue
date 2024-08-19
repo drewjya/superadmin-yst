@@ -1,43 +1,39 @@
 <script setup lang="ts">
 import type { VCabang } from "~/lib/types";
-import { getLastItem } from "~/lib/utils";
 
-const skip = ref();
+const skip = ref("");
+type Cur = number | undefined;
+const cursors = ref<Cur[]>([undefined]);
 type CabangReq = {
   cabang: VCabang[];
-  hasNextPage: boolean;
-  lastCursor: number | null;
+  nextCursor: number | null;
 };
 const { data, status } = await useLazyFetch<CabangReq>(
-  () => `/api/cabang?cursor=${skip.value ?? ""}`
+  () => `/api/cabang?limit=6&cursor=${skip.value}`
 );
 
 const setCursor = (val: "prev" | "next") => {
   if (val === "next") {
-    if (data.value?.hasNextPage) {
-      skip.value = getLastItem(data.value!.cabang).id;
+    const next = `${data?.value?.nextCursor ?? ""}`;
+    if (cursors.value.length === 0) {
+      cursors.value = [undefined];
     }
+    cursors.value = [...cursors.value, data?.value?.nextCursor ?? undefined];
+    skip.value = next;
     return;
   }
   if (val === "prev") {
-    if (data.value?.lastCursor === null) {
-      skip.value = "";
+    let cur = cursors.value.pop();
+    cur = cursors.value.pop();
+    skip.value = `${cur ?? ""}`;
+    if (cursors.value.length === 0 && cur === undefined) {
+      cursors.value = [undefined];
     } else {
-      skip.value = data.value?.lastCursor;
+      cursors.value = [...cursors.value, cur];
     }
   }
 
   return;
-};
-
-// const slide = useSlideover();
-
-const addCabang = () => {
-  // useRouter().push("/cabang/add");
-
-  $fetch("/api/cabang/add", {
-    method: "POST",
-  });
 };
 </script>
 
@@ -48,9 +44,7 @@ const addCabang = () => {
     <div class="flex items-center justify-between">
       <AppBreadCrumb />
 
-      <Button variant="outline" size="sm" @click="addCabang"
-        >Add New Cabang</Button
-      >
+      <Button variant="outline" size="sm">Add New Cabang</Button>
     </div>
     <div
       class="h-48 bg-stone-200 rounded flex justify-center items-center"
@@ -112,7 +106,7 @@ const addCabang = () => {
         size="sm"
         class="px-8"
         @click="() => setCursor('prev')"
-        :disabled="data.lastCursor === null"
+        :disabled="cursors.length === 1"
         >Prev</Button
       >
       <Button
@@ -120,7 +114,7 @@ const addCabang = () => {
         size="sm"
         class="px-8"
         @click="() => setCursor('next')"
-        :disabled="!data.hasNextPage"
+        :disabled="data?.nextCursor === undefined || data?.nextCursor === null"
         >Next</Button
       >
     </div>

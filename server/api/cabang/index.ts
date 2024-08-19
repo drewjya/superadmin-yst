@@ -1,16 +1,15 @@
 import prisma from "~/lib/prisma";
 
 export default defineEventHandler(async (event) => {
-  const param: { cursor: number } = getQuery(event);
-  console.log(parseInt(`${param.cursor} `));
+  const { cursor, limit }: { cursor: number; limit: number } = getQuery(event);
 
   const cabang = await prisma.cabang.findMany({
-    take: 6,
-    ...(parseInt(`${param.cursor}`)
+    take: limit ? +limit : undefined,
+    ...(parseInt(`${cursor}`)
       ? {
           skip: 1, // Do not include the cursor itself in the query result.
           cursor: {
-            id: +param.cursor,
+            id: +cursor,
           },
         }
       : {}),
@@ -32,33 +31,16 @@ export default defineEventHandler(async (event) => {
       alamat: true,
     },
   });
-  let hasNextPage: boolean = false;
+  let nextCursor: number | undefined;
 
-  if (cabang && cabang.length !== 0) {
-    const cursor = cabang[cabang.length - 1].id;
-
-    const nextPage = await prisma.cabang.findMany({
-      take: 6,
-      skip: 1,
-      cursor: {
-        id: cursor,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    hasNextPage = nextPage.length > 0;
-
-    return {
-      cabang,
-      lastCursor: parseInt(`${param.cursor}`) ?? undefined,
-      hasNextPage: hasNextPage,
-    };
+  if (cabang.length < limit) {
+    nextCursor = undefined;
+  } else {
+    nextCursor = cabang[cabang.length - 1].id;
   }
+
   return {
-    cabang: [],
-    lastCursor: parseInt(`${param.cursor}`) ?? undefined,
-    hasNextPage: hasNextPage,
+    cabang: cabang,
+    nextCursor: nextCursor,
   };
 });

@@ -28,9 +28,11 @@ export type VTreatment = {
   durasi: number;
   category: {
     nama: string;
+    id: number;
   };
   tags: {
     name: string;
+    id: number;
   } | null;
 };
 
@@ -101,3 +103,14 @@ export type State<T> = {
   data: T | undefined;
   loading: boolean;
 };
+
+
+export type VTags = {
+  id: number,
+  name: string
+}
+
+export type VCategory = {
+  id: number,
+  nama:string
+}

@@ -1,4 +1,4 @@
-import { OrderStatus } from "@prisma/client";
+import { Gender, OrderStatus } from "@prisma/client";
 import prisma from "~/lib/prisma";
 import { VOrder } from "~/lib/types";
 
@@ -10,12 +10,14 @@ export default defineEventHandler(async (event) => {
     cursor,
     start,
     end,
+    gender,
     status,
   }: {
     cursor: number;
     therapist: string;
     name: string;
     email: string;
+    gender: string;
     start: string;
     end: string;
     status: string;
@@ -23,7 +25,7 @@ export default defineEventHandler(async (event) => {
   let items: VOrder[];
   const limit = 10;
 
-  if (therapist || name || email) {
+  if (therapist || name || email || gender) {
     items = await prisma.order.findMany({
       take: limit,
       where: {
@@ -39,6 +41,8 @@ export default defineEventHandler(async (event) => {
               },
             }
           : undefined,
+
+        therapistGender: gender ? (gender as Gender) : undefined,
         orderStatus: status.length === 0 ? undefined : (status as OrderStatus),
         user:
           name || email
@@ -86,7 +90,7 @@ export default defineEventHandler(async (event) => {
         },
       },
       orderBy: {
-        orderTime: "desc",
+        orderTime: "asc",
       },
     });
 
@@ -142,6 +146,9 @@ export default defineEventHandler(async (event) => {
           path: true,
         },
       },
+    },
+    orderBy: {
+      orderTime: "asc",
     },
   });
   let nextCursor: number | undefined;
