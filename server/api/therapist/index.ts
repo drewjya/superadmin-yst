@@ -43,8 +43,8 @@ export default defineEventHandler(async (event) => {
     no: string;
     cabang: number;
   } = getQuery(event);
-  let items: VTherapist[];
   const limit = 10;
+  let items: VTherapist[];
   const date = getUtcDateToday();
   if (query || gender || no || cabang) {
     const data = await prisma.therapist.findMany({
